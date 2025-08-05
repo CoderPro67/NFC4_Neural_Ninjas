@@ -1,9 +1,0 @@
-fastapi
-uvicorn[standard]
-python-cors
-python-multipart
-transformers
-torch
-sentencepiece
-PyMuPDF
-python-docx

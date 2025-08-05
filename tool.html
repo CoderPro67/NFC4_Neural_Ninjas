@@ -11,7 +11,7 @@
     <header class="hero-section" id="hero-section">
         <div class="container">
             <nav class="navbar">
-                <a href="#" class="logo">Your Logo Here</a>
+                <a href="#" class="logo">Data Redact AI</a>
                 <ul class="nav-links">
                     <li><a href="#features">Features</a></li>
                     <li><a href="#solution">Solution</a></li>
@@ -21,6 +21,27 @@
             <div class="hero-content">
                 <h1>Automate Data Privacy Redaction with Intelligent AI</h1>
                 <p>Securely share documents by automatically redacting sensitive information while preserving context and readability. Save time and ensure compliance.</p>
+
+                <div class="upload-options">
+                    <div class="option-group">
+                        <label for="compliance-mode">Compliance Mode:</label>
+                        <select id="compliance-mode" name="mode">
+                            <option value="DPDP" selected>DPDP (India)</option>
+                            <option value="GDPR">GDPR (Europe)</option>
+                            <option value="HIPAA">HIPAA (Health, US)</option>
+                            <option value="FULL_REDACTION">Full Redaction</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label for="agentic-level">Confidence Level: <span id="level-value">0.75</span></label>
+                        <input type="range" id="agentic-level" name="level" min="0.1" max="1.0" step="0.05" value="0.75">
+                    </div>
+                    <div class="option-group checkbox-group">
+                        <label for="aggressive-mode">Aggressive Mode</label>
+                        <input type="checkbox" id="aggressive-mode" name="aggressive">
+                        <span>(Redacts all detected entities regardless of confidence)</span>
+                    </div>
+                </div>
                 <button class="btn upload-btn" id="upload-btn">Upload & Redact</button>
                 <input type="file" id="file-input" style="display: none;" accept=".txt,.pdf,.docx,.json">
             </div>
@@ -36,27 +57,27 @@
                     <h3>Supports Multiple Document Formats</h3>
                     <p>(TXT, DOCX, PDF, JSON)</p>
                 </div>
-                <div class="feature-card" onclick="showFeatureInfo('pii-detection')">
+                <div class="feature-card">
                     <div class="icon">🤖</div>
                     <h3>AI-Powered PII Detection</h3>
                     <p>Accurately identifies personally identifiable information.</p>
                 </div>
-                <div class="feature-card" onclick="showFeatureInfo('customizable-entities')">
+                <div class="feature-card">
                     <div class="icon">⚙️</div>
-                    <h3>Customizable Entity Types</h3>
-                    <p>Tailor redaction to your specific needs.</p>
+                    <h3>Customizable Redaction</h3>
+                    <p>Tailor redaction with modes and confidence levels.</p>
                 </div>
-                <div class="feature-card" onclick="showFeatureInfo('manual-override')">
+                <div class="feature-card">
                     <div class="icon">✍️</div>
                     <h3>Manual Override</h3>
                     <p>Fine-tune redactions for complete control.</p>
                 </div>
-                <div class="feature-card" onclick="showFeatureInfo('compliance-modes')">
+                <div class="feature-card">
                     <div class="icon">⚖️</div>
                     <h3>Compliance Modes</h3>
                     <p>GDPR, HIPAA, DPDP, and more.</p>
                 </div>
-                <div class="feature-card" onclick="showFeatureInfo('batch-redaction')">
+                <div class="feature-card">
                     <div class="icon">📁</div>
                     <h3>Batch Redaction</h3>
                     <p>Process multiple documents at once.</p>
@@ -81,7 +102,7 @@
 
     <section id="redaction-view" class="redaction-view hidden">
         <div class="container">
-            <button class="back-btn" onclick="backToHome()">&larr; Back to Home</button>
+            <button class="back-btn" onclick="backToHome()">&larr; Upload Another File</button>
             <h2>Review & Validate Redaction</h2>
             <div class="redaction-panel">
                 <div class="document-pane original-document">
@@ -93,7 +114,7 @@
                     <pre id="redacted-text"></pre>
                 </div>
             </div>
-            <button class="btn validate-btn" id="validate-btn">Validate Redaction</button>
+            <button class="btn validate-btn" id="validate-btn">Download Redacted File</button>
         </div>
     </section>
 
@@ -105,7 +126,7 @@
                     <p>Manual redaction is labor-intensive, error-prone, and can obscure the original document's purpose. Our AI tool automates this process, ensuring accuracy and efficiency while preserving the context and readability that matters.</p>
                 </div>
                 <div class="solution-image">
-                    <img src="path/to/solution-image.png" alt="Before and after redaction">
+                    <img src="https://storage.googleapis.com/gemini-prod/images/41551c6b-87b6-45e0-b695-1f52d9a584de.png" alt="Before and after redaction comparison">
                 </div>
             </div>
         </div>
@@ -130,7 +151,7 @@
                 <a href="#">Privacy Policy</a>
                 <a href="#">Terms of Service</a>
             </div>
-            <p>&copy; 2025 Your Company Name. All rights reserved.</p>
+            <p>&copy; 2025 Data Redact AI. All rights reserved.</p>
         </div>
     </footer>
 
@@ -139,52 +160,70 @@
             document.getElementById('file-input').click();
         });
 
+        // MODIFIED: This entire event listener is updated to send the new parameters.
         document.getElementById('file-input').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
+            // Get values from the new UI controls
+            const mode = document.getElementById('compliance-mode').value;
+            const level = document.getElementById('agentic-level').value;
+            const aggressive = document.getElementById('aggressive-mode').checked;
+
             const formData = new FormData();
-    formData.append("file", file);
+            formData.append("file", file);
+            // Append the new parameters to the form data
+            formData.append("mode", mode);
+            formData.append("level", level);
+            formData.append("aggressive", String(aggressive)); // Send as string for compatibility
 
-    fetch("http://127.0.0.1:8000/upload", {
-        method: "POST",
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        const originalText = data.original_text || "No original text";
-        const redactedText = data.redacted_text || "No redacted text";
-        showRedactionView(originalText, redactedText);
-    })
-    .catch(error => {
-        console.error("Error uploading file:", error);
-    });
-});
+            console.log("Uploading with params:", { mode, level, aggressive }); // For debugging
 
+            fetch("http://127.0.0.1:8000/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Handle HTTP errors like 4xx, 5xx. Assumes server sends JSON error.
+                    return response.json().then(err => { throw new Error(err.detail || err.error || 'Server error occurred') });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'error') {
+                    // Handle logical errors returned by the backend
+                    alert(`An error occurred: ${data.error}`);
+                    return;
+                }
+                const originalText = data.original_text || "No original text to display.";
+                const redactedText = data.redacted_text || "No redacted text to display.";
+                showRedactionView(originalText, redactedText);
+            })
+            .catch(error => {
+                console.error("Error uploading file:", error);
+                alert("Could not process the file. " + error.message);
+            });
+        });
+
+        // NEW: Add a listener for the slider to update the displayed value in real-time.
+        document.getElementById('agentic-level').addEventListener('input', function(event) {
+            document.getElementById('level-value').textContent = event.target.value;
+        });
 
         document.getElementById('validate-btn').addEventListener('click', function() {
             alert('Redaction validated! Your redacted file is ready for download.');
+            // In a real application, this would trigger a file download.
         });
-
-        function redactContent(text) {
-            // This is a mock redaction function for demonstration
-            let redacted = text;
-            const sensitiveWords = ['email', 'phone', 'name', 'address', 'SSN', 'credit card'];
-            
-            sensitiveWords.forEach(word => {
-                const regex = new RegExp(word, 'gi');
-                redacted = redacted.replace(regex, '[REDACTED]');
-            });
-
-            return redacted;
-        }
-
+        
         function showRedactionView(originalText, redactedText) {
             // Hide main landing page sections
             document.getElementById('hero-section').classList.add('hidden');
             document.getElementById('features').classList.add('hidden');
             document.getElementById('solution').classList.add('hidden');
             document.getElementById('login').classList.add('hidden');
+            document.getElementById('format-selection-page').classList.add('hidden');
+
 
             // Show redaction view
             document.getElementById('redaction-view').classList.remove('hidden');
@@ -198,18 +237,24 @@
             document.getElementById('solution').classList.remove('hidden');
             document.getElementById('login').classList.remove('hidden');
             document.getElementById('redaction-view').classList.add('hidden');
+            
+            // Reset file input so user can upload the same file again if needed
+            document.getElementById('file-input').value = '';
         }
 
-        // The old functions are now modified to work with the new flow
         function showFormatSelection() {
             document.getElementById('hero-section').classList.add('hidden');
             document.getElementById('features').classList.add('hidden');
+            document.getElementById('solution').classList.add('hidden');
+            document.getElementById('login').classList.add('hidden');
             document.getElementById('format-selection-page').classList.remove('hidden');
         }
 
         function backToFeatures() {
             document.getElementById('hero-section').classList.remove('hidden');
             document.getElementById('features').classList.remove('hidden');
+            document.getElementById('solution').classList.remove('hidden');
+            document.getElementById('login').classList.remove('hidden');
             document.getElementById('format-selection-page').classList.add('hidden');
         }
 
@@ -217,10 +262,6 @@
             const fileInput = document.getElementById('file-input');
             fileInput.accept = fileType;
             fileInput.click();
-        }
-        
-        function showFeatureInfo(feature) {
-            // Existing feature info function
         }
     </script>
 

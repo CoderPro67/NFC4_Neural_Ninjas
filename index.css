@@ -1,3 +1,5 @@
+/* index.css */
+
 /* Basic Reset and Variables */
 :root {
     --primary-color: #5d3fd3; /* A deep purple */
@@ -366,3 +368,65 @@ h2 {
 .footer-links a:hover {
     color: var(--accent-color);
 }
+
+/* ... existing CSS ... */
+
+/* NEW: Styles for Upload Options */
+.upload-options {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin: 30px auto;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 1px solid var(--primary-color);
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.option-group label {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+.option-group select,
+.option-group input[type="range"] {
+    width: 100%;
+    padding: 8px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--primary-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.option-group.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.option-group.checkbox-group label {
+    margin-bottom: 0;
+}
+
+.option-group.checkbox-group span {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.option-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--accent-color);
+}
+
+/* ... rest of your CSS ... */

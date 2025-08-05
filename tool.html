@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Data Privacy Redaction Tool</title>
+    <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+
+    <header class="hero-section" id="hero-section">
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo">Your Logo Here</a>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#solution">Solution</a></li>
+                    <li><a href="#login">Login</a></li>
+                </ul>
+            </nav>
+            <div class="hero-content">
+                <h1>Automate Data Privacy Redaction with Intelligent AI</h1>
+                <p>Securely share documents by automatically redacting sensitive information while preserving context and readability. Save time and ensure compliance.</p>
+                <button class="btn upload-btn" id="upload-btn">Upload & Redact</button>
+                <input type="file" id="file-input" style="display: none;" accept=".txt,.pdf,.docx,.json">
+            </div>
+        </div>
+    </header>
+
+    <section id="features" class="features-section">
+        <div class="container">
+            <h2>Key Functionalities</h2>
+            <div class="features-grid">
+                <div class="feature-card" onclick="showFormatSelection()">
+                    <div class="icon">📄</div>
+                    <h3>Supports Multiple Document Formats</h3>
+                    <p>(TXT, DOCX, PDF, JSON)</p>
+                </div>
+                <div class="feature-card" onclick="showFeatureInfo('pii-detection')">
+                    <div class="icon">🤖</div>
+                    <h3>AI-Powered PII Detection</h3>
+                    <p>Accurately identifies personally identifiable information.</p>
+                </div>
+                <div class="feature-card" onclick="showFeatureInfo('customizable-entities')">
+                    <div class="icon">⚙️</div>
+                    <h3>Customizable Entity Types</h3>
+                    <p>Tailor redaction to your specific needs.</p>
+                </div>
+                <div class="feature-card" onclick="showFeatureInfo('manual-override')">
+                    <div class="icon">✍️</div>
+                    <h3>Manual Override</h3>
+                    <p>Fine-tune redactions for complete control.</p>
+                </div>
+                <div class="feature-card" onclick="showFeatureInfo('compliance-modes')">
+                    <div class="icon">⚖️</div>
+                    <h3>Compliance Modes</h3>
+                    <p>GDPR, HIPAA, DPDP, and more.</p>
+                </div>
+                <div class="feature-card" onclick="showFeatureInfo('batch-redaction')">
+                    <div class="icon">📁</div>
+                    <h3>Batch Redaction</h3>
+                    <p>Process multiple documents at once.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="format-selection-page" class="format-selection-section hidden">
+        <div class="container">
+            <button class="back-btn" onclick="backToFeatures()">&larr; Back to Features</button>
+            <h2>Choose a File Format to Upload</h2>
+            <p>Select a format to proceed with the redaction process.</p>
+            <div class="format-grid">
+                <button class="format-btn" onclick="uploadFile('.txt')">TXT</button>
+                <button class="format-btn" onclick="uploadFile('.docx')">DOCX</button>
+                <button class="format-btn" onclick="uploadFile('.pdf')">PDF</button>
+                <button class="format-btn" onclick="uploadFile('.json')">JSON</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="redaction-view" class="redaction-view hidden">
+        <div class="container">
+            <button class="back-btn" onclick="backToHome()">&larr; Back to Home</button>
+            <h2>Review & Validate Redaction</h2>
+            <div class="redaction-panel">
+                <div class="document-pane original-document">
+                    <h3>Original Document</h3>
+                    <pre id="original-text"></pre>
+                </div>
+                <div class="document-pane redacted-document">
+                    <h3>Redacted Document</h3>
+                    <pre id="redacted-text"></pre>
+                </div>
+            </div>
+            <button class="btn validate-btn" id="validate-btn">Validate Redaction</button>
+        </div>
+    </section>
+
+    <section id="solution" class="solution-section">
+        <div class="container">
+            <div class="solution-content">
+                <div class="solution-text">
+                    <h2>Intelligently redact sensitive information while preserving document meaning.</h2>
+                    <p>Manual redaction is labor-intensive, error-prone, and can obscure the original document's purpose. Our AI tool automates this process, ensuring accuracy and efficiency while preserving the context and readability that matters.</p>
+                </div>
+                <div class="solution-image">
+                    <img src="path/to/solution-image.png" alt="Before and after redaction">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="login" class="login-section">
+        <div class="container">
+            <h2>Login</h2>
+            <p>Access your account to start redacting documents.</p>
+            <form action="#" method="post" class="login-form">
+                <input type="email" name="email" placeholder="Email Address" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit" class="btn">Log In</button>
+            </form>
+            <p class="signup-link">Don't have an account? <a href="#">Sign up here</a></p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+            <p>&copy; 2025 Your Company Name. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('upload-btn').addEventListener('click', function() {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const originalText = e.target.result;
+                const redactedText = redactContent(originalText);
+                showRedactionView(originalText, redactedText);
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById('validate-btn').addEventListener('click', function() {
+            alert('Redaction validated! Your redacted file is ready for download.');
+        });
+
+        function redactContent(text) {
+            // This is a mock redaction function for demonstration
+            let redacted = text;
+            const sensitiveWords = ['email', 'phone', 'name', 'address', 'SSN', 'credit card'];
+            
+            sensitiveWords.forEach(word => {
+                const regex = new RegExp(word, 'gi');
+                redacted = redacted.replace(regex, '[REDACTED]');
+            });
+
+            return redacted;
+        }
+
+        function showRedactionView(originalText, redactedText) {
+            // Hide main landing page sections
+            document.getElementById('hero-section').classList.add('hidden');
+            document.getElementById('features').classList.add('hidden');
+            document.getElementById('solution').classList.add('hidden');
+            document.getElementById('login').classList.add('hidden');
+
+            // Show redaction view
+            document.getElementById('redaction-view').classList.remove('hidden');
+            document.getElementById('original-text').textContent = originalText;
+            document.getElementById('redacted-text').textContent = redactedText;
+        }
+
+        function backToHome() {
+            document.getElementById('hero-section').classList.remove('hidden');
+            document.getElementById('features').classList.remove('hidden');
+            document.getElementById('solution').classList.remove('hidden');
+            document.getElementById('login').classList.remove('hidden');
+            document.getElementById('redaction-view').classList.add('hidden');
+        }
+
+        // The old functions are now modified to work with the new flow
+        function showFormatSelection() {
+            document.getElementById('hero-section').classList.add('hidden');
+            document.getElementById('features').classList.add('hidden');
+            document.getElementById('format-selection-page').classList.remove('hidden');
+        }
+
+        function backToFeatures() {
+            document.getElementById('hero-section').classList.remove('hidden');
+            document.getElementById('features').classList.remove('hidden');
+            document.getElementById('format-selection-page').classList.add('hidden');
+        }
+
+        function uploadFile(fileType) {
+            const fileInput = document.getElementById('file-input');
+            fileInput.accept = fileType;
+            fileInput.click();
+        }
+        
+        function showFeatureInfo(feature) {
+            // Existing feature info function
+        }
+    </script>
+
+</body>
+</html>

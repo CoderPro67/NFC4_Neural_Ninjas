@@ -1,5 +1,3 @@
-
-
 import spacy
 from spacy.tokens import DocBin
 from spacy.training.example import Example

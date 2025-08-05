@@ -143,14 +143,24 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const originalText = e.target.result;
-                const redactedText = redactContent(originalText);
-                showRedactionView(originalText, redactedText);
-            };
-            reader.readAsText(file);
-        });
+            const formData = new FormData();
+    formData.append("file", file);
+
+    fetch("http://127.0.0.1:8000/upload", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const originalText = data.original_text || "No original text";
+        const redactedText = data.redacted_text || "No redacted text";
+        showRedactionView(originalText, redactedText);
+    })
+    .catch(error => {
+        console.error("Error uploading file:", error);
+    });
+});
+
 
         document.getElementById('validate-btn').addEventListener('click', function() {
             alert('Redaction validated! Your redacted file is ready for download.');

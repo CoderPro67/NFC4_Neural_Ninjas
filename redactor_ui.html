@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Redactor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- docx-preview for rendering DOCX files -->
+    <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.1.15/dist/docx-preview.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .document-viewer { width: 100%; height: 600px; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: #f9fafb; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900">AI-Powered Document Redactor</h1>
+            <p class="text-lg text-gray-600 mt-2">Upload a document, choose a compliance mode, and view the redacted version.</p>
+        </header>
+
+        <!-- Main Control Panel -->
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                <div>
+                    <label for="file-upload" class="block text-sm font-medium text-gray-700 mb-1">1. Upload Document</label>
+                    <input id="file-upload" type="file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" accept=".pdf,.docx,.txt,.json">
+                </div>
+                <div>
+                    <label for="compliance-mode" class="block text-sm font-medium text-gray-700 mb-1">2. Select Compliance Mode</label>
+                    <select id="compliance-mode" class="block w-full p-2.5 border border-gray-300 rounded-lg bg-gray-50">
+                        <option value="dpdp">DPDP (India)</option>
+                        <option value="gdpr">GDPR (Europe)</option>
+                        <option value="hipaa">HIPAA (Health, US)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button id="redact-button" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 disabled:bg-gray-400" disabled>Redact Document</button>
+            </div>
+        </div>
+        
+        <div id="loader-container" class="text-center my-8 hidden">
+            <div class="loader mx-auto"></div>
+            <p class="text-gray-600 mt-4">Sending to backend for redaction...</p>
+        </div>
+        
+        <div id="results-container" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
+            <div>
+                <h2 class="text-2xl font-semibold mb-4">Original Document</h2>
+                <div id="original-viewer" class="document-viewer"></div>
+            </div>
+            <div>
+                <h2 class="text-2xl font-semibold mb-4">Redacted Document</h2>
+                <div id="redacted-viewer" class="document-viewer"></div>
+                <div class="mt-4 text-right">
+                    <button id="download-button" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 hidden">Download Redacted File</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileUpload = document.getElementById('file-upload');
+        const complianceModeSelect = document.getElementById('compliance-mode');
+        const redactButton = document.getElementById('redact-button');
+        const loaderContainer = document.getElementById('loader-container');
+        const resultsContainer = document.getElementById('results-container');
+        const originalViewer = document.getElementById('original-viewer');
+        const redactedViewer = document.getElementById('redacted-viewer');
+        const downloadButton = document.getElementById('download-button');
+
+        let currentFile = null;
+        let redactedFileBlob = null;
+
+        fileUpload.addEventListener('change', handleFileSelect);
+        redactButton.addEventListener('click', handleRedaction);
+        downloadButton.addEventListener('click', handleDownload);
+
+        async function handleFileSelect(event) {
+            currentFile = event.target.files[0];
+            if (!currentFile) {
+                redactButton.disabled = true;
+                return;
+            }
+            redactButton.disabled = false;
+            resultsContainer.classList.add('hidden');
+            downloadButton.classList.add('hidden');
+            redactedFileBlob = null;
+            await renderDocument(currentFile, originalViewer);
+        }
+
+        async function renderDocument(fileOrBlob, viewerElement) {
+            viewerElement.innerHTML = ''; // Clear previous content
+            const extension = (currentFile.name.split('.').pop() || '').toLowerCase();
+            
+            if (extension === 'pdf') {
+                const url = URL.createObjectURL(fileOrBlob);
+                const iframe = document.createElement('iframe');
+                iframe.src = url;
+                iframe.className = 'w-full h-full';
+                viewerElement.appendChild(iframe);
+            } else if (extension === 'docx') {
+                docx.renderAsync(fileOrBlob, viewerElement);
+            } else if (extension === 'txt' || extension === 'json') {
+                const text = await fileOrBlob.text();
+                const pre = document.createElement('pre');
+                pre.textContent = text;
+                pre.className = 'w-full h-full p-4 whitespace-pre-wrap break-words';
+                viewerElement.appendChild(pre);
+            } else {
+                viewerElement.textContent = 'Unsupported file type for preview.';
+            }
+        }
+
+        async function handleRedaction() {
+            if (!currentFile) {
+                alert("Please upload a document first.");
+                return;
+            }
+
+            loaderContainer.classList.remove('hidden');
+            resultsContainer.classList.add('hidden');
+            redactButton.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+            formData.append('compliance_mode', complianceModeSelect.value);
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/redact-file', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Backend request failed');
+                }
+
+                redactedFileBlob = await response.blob();
+                await renderDocument(redactedFileBlob, redactedViewer);
+                
+                resultsContainer.classList.remove('hidden');
+                downloadButton.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Redaction Error:", error);
+                redactedViewer.textContent = `An error occurred: ${error.message}`;
+                resultsContainer.classList.remove('hidden');
+            } finally {
+                loaderContainer.classList.add('hidden');
+                redactButton.disabled = false;
+            }
+        }
+
+        function handleDownload() {
+            if (!redactedFileBlob || !currentFile) return;
+            const url = URL.createObjectURL(redactedFileBlob);
+            const a = document.createElement('a');
+            const baseName = currentFile.name.substring(0, currentFile.name.lastIndexOf('.'));
+            const extension = currentFile.name.split('.').pop();
+            a.href = url;
+            a.download = `${baseName}_redacted.${extension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
